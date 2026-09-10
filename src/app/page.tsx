@@ -82,18 +82,15 @@ export default async function Home() {
             </Link>
           </section>
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 flex flex-col gap-3">
             {sessions.map((s, i) => {
-              const wide = i % 5 === 0;
               const cover = coverUrlOf(s.work?.cover_url);
               return (
                 <Link
                   key={s.id}
                   href={`/works/${s.work_id}`}
                   style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
-                  className={`tome rise-in flex gap-4 p-5 ${
-                    wide ? "col-span-2" : ""
-                  }`}
+                  className="tome rise-in flex gap-4 p-5"
                 >
                   {/* 背表紙のように書影を添える */}
                   {cover ? (
