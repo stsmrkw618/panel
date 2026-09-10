@@ -1,26 +1,277 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =========================================================
+   PANEL — 秘密の書庫 (The Secret Archive)
+   うす暗い書庫・羊皮紙・真鍮の金・封蝋の朱。
+   明朝体の高級感を主役に、ページをめくる高揚感を宿す。
+   ========================================================= */
+@theme {
+  /* 書庫（背景の闇） */
+  --color-vault: #16110b;
+  --color-vault-2: #221a11;
+
+  /* 羊皮紙（蔵書カードの紙） */
+  --color-parchment: #ece1c6;
+  --color-parchment-2: #e2d5b4;
+  --color-parchment-edge: #cdbb92;
+
+  /* インク（羊皮紙上の文字） */
+  --color-ink: #241c12;
+  --color-ink-soft: #5c4f39;
+
+  /* 真鍮・金箔（罫・ラベル・装飾） */
+  --color-brass: #c6a561;
+  --color-brass-dim: #94804f;
+  --color-brass-deep: #6e5a30;
+
+  /* 封蝋の朱（蔵書印・記録の印） */
+  --color-seal: #9d2b22;
+  --color-seal-2: #7c211a;
+
+  /* トーン */
+  --color-muted: #8a7c62;
+  --color-muted-dark: #7c6f57;
+
+  /* 書体：明朝（主役）／サンセリフ（極小ラベル） */
+  --font-serif: var(--font-shippori), "Yu Mincho", "游明朝", serif;
+  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
+
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    border-color: var(--color-brass-dim);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    color: var(--color-parchment);
+    font-family: var(--font-serif);
+    background-color: var(--color-vault);
+    /* 書庫の空気：上からの淡い燭光と、四隅に沈むヴィネット */
+    background-image:
+      radial-gradient(
+        120% 70% at 50% -8%,
+        rgba(198, 165, 97, 0.16) 0%,
+        rgba(198, 165, 97, 0) 55%
+      ),
+      radial-gradient(
+        130% 120% at 50% 115%,
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0) 55%
+      ),
+      linear-gradient(180deg, var(--color-vault-2), var(--color-vault) 60%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    letter-spacing: 0.01em;
+  }
+
+  input,
+  textarea,
+  button {
+    font-family: inherit;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------------------------------------------------------
+   蔵書カード（tome）：羊皮紙の紙片。金の内枠と落ち影で浮かせる。
+   --------------------------------------------------------- */
+.tome {
+  position: relative;
+  background-color: var(--color-parchment);
+  background-image: linear-gradient(
+    180deg,
+    var(--color-parchment) 0%,
+    var(--color-parchment-2) 100%
+  );
+  color: var(--color-ink);
+  border: 1px solid var(--color-brass-deep);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 2px 0 var(--color-parchment-edge),
+    0 18px 34px -16px rgba(0, 0, 0, 0.7);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* 金の内枠（蔵書票の二重罫） */
+.tome::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(110, 90, 48, 0.4);
+  pointer-events: none;
+}
+
+/* リンクになっている蔵書カードは、そっと持ち上がる */
+a.tome:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 var(--color-parchment-edge),
+    0 26px 46px -18px rgba(0, 0, 0, 0.8);
+}
+
+/* ---------------------------------------------------------
+   小見出しラベル（真鍮の箔押し風）
+   --------------------------------------------------------- */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-brass-deep);
+}
+.eyebrow-bright {
+  color: var(--color-brass);
+}
+
+/* 金の罫線 */
+.rule-brass {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-brass-dim) 15%,
+    var(--color-brass) 50%,
+    var(--color-brass-dim) 85%,
+    transparent
+  );
+}
+
+/* ---------------------------------------------------------
+   封蝋の印（記録ボタン・アクセント）
+   --------------------------------------------------------- */
+.seal {
+  color: #f2e3c0;
+  background: radial-gradient(
+    circle at 34% 30%,
+    #bb3a31 0%,
+    var(--color-seal) 45%,
+    var(--color-seal-2) 100%
+  );
+  border: 1px solid #5e1712;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+    0 10px 22px -8px rgba(0, 0, 0, 0.7);
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 200ms ease;
+}
+.seal:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+    0 16px 30px -10px rgba(0, 0, 0, 0.8);
+}
+.seal:active {
+  transform: translateY(0);
+}
+
+/* ---------------------------------------------------------
+   フォーム要素（羊皮紙上）
+   --------------------------------------------------------- */
+.field {
+  background-color: #f3ecd9;
+  color: var(--color-ink);
+  border: 1px solid var(--color-brass-dim);
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.field::placeholder {
+  color: #a99b7d;
+}
+.field:focus {
+  border-color: var(--color-seal);
+  box-shadow: 0 0 0 3px rgba(157, 43, 34, 0.14);
+}
+
+/* 選択トグル（羊皮紙上の押下）：選ばれると封蝋色に沈む */
+.chip {
+  background-color: #f3ecd9;
+  color: var(--color-ink);
+  border: 1px solid var(--color-brass-dim);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 120ms ease;
+}
+.chip:hover {
+  border-color: var(--color-brass-deep);
+}
+.chip[data-on="true"] {
+  background: linear-gradient(180deg, #33271a, #241c12);
+  color: var(--color-brass);
+  border-color: var(--color-brass-deep);
+}
+
+/* 引用・OCR：吹き出し／碑文の趣（明朝で一段大きく） */
+.quote {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+/* 記録の保存完了：綴じるように閉じる（唯一の主役演出） */
+@keyframes tome-close {
+  0% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(50% 0 50% 0);
+    opacity: 0.9;
+  }
+}
+.animate-tome-close {
+  animation: tome-close 360ms cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+/* 立ち上がりの気配（カードがすっと浮かぶ） */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise-in {
+  animation: rise-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  a.tome:hover,
+  .seal:hover {
+    transform: none;
+  }
 }
