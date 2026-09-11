@@ -15,6 +15,17 @@ export async function setCoverPath(
   revalidatePath("/");
 }
 
+// 連載状態の変更：完結なら最終巻(finalVolume)を保持、連載中なら null に戻す。
+// total_volumes が「完結かどうか」を兼ねる（連載中は都度変わるので数を持たない）。
+export async function setSeriesCompletion(
+  workId: string,
+  finalVolume: number | null,
+): Promise<void> {
+  await updateWork(workId, { total_volumes: finalVolume });
+  revalidatePath(`/works/${workId}`);
+  revalidatePath("/");
+}
+
 export type EditSessionInput = {
   read_at: string;
   source: Source;

@@ -9,6 +9,7 @@ import SessionCard from "./SessionCard";
 import AddScene from "./AddScene";
 import SceneItem from "./SceneItem";
 import CoverUpload from "./CoverUpload";
+import SeriesStatus from "./SeriesStatus";
 
 export default async function WorkDetailPage({
   params,
@@ -84,14 +85,14 @@ export default async function WorkDetailPage({
               <p className="mt-1 text-sm text-ink-soft">{work.author}</p>
             )}
             <p className="mt-3 font-sans text-[0.7rem] tracking-wide text-muted-dark">
-              {[
-                WORK_STATUS_LABELS[work.status],
-                work.total_volumes ? `全${work.total_volumes}巻` : null,
-                work.publisher,
-              ]
+              {[WORK_STATUS_LABELS[work.status], work.publisher]
                 .filter(Boolean)
                 .join(" ・ ")}
             </p>
+            <SeriesStatus
+              workId={work.id}
+              totalVolumes={work.total_volumes}
+            />
           </div>
         </section>
 

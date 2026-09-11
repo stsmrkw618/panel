@@ -66,6 +66,8 @@ export default function LogForm({ works }: { works: Work[] }) {
   const [selectedWork, setSelectedWork] = useState<Work | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [newAuthor, setNewAuthor] = useState("");
+  // 連載状態。完結を選んだときだけ最終巻(newTotal)を任意入力する
+  const [newComplete, setNewComplete] = useState(false);
   const [newTotal, setNewTotal] = useState("");
   const [continueFrom, setContinueFrom] = useState<number | null>(null);
 
@@ -116,6 +118,7 @@ export default function LogForm({ works }: { works: Work[] }) {
     setContinueFrom(null);
     setNewTitle(query.trim());
     setNewAuthor("");
+    setNewComplete(false);
     setNewTotal("");
     setStep(2);
   }
@@ -139,6 +142,7 @@ export default function LogForm({ works }: { works: Work[] }) {
     setContinueFrom(null);
     setNewTitle(b.title);
     setNewAuthor(b.author ?? "");
+    setNewComplete(b.total_volumes != null);
     setNewTotal(b.total_volumes != null ? String(b.total_volumes) : "");
     setStep(2);
   }
@@ -165,6 +169,7 @@ export default function LogForm({ works }: { works: Work[] }) {
         setContinueFrom(null);
         setNewTitle("");
         setNewAuthor("");
+        setNewComplete(false);
         setNewTotal("");
         setStep(2);
       }
@@ -209,7 +214,8 @@ export default function LogForm({ works }: { works: Work[] }) {
               publisher: biblio?.publisher ?? null,
               isbn: biblio?.isbn ?? null,
               cover_url: biblio?.cover_url ?? null,
-              total_volumes: newTotal ? Number(newTotal) : null,
+              // 完結を選んだときのみ最終巻を保持。連載中は null（＝随時変わるので持たない）
+              total_volumes: newComplete && newTotal ? Number(newTotal) : null,
             },
         read_at: readAt,
         volume_from: from,
@@ -415,20 +421,42 @@ export default function LogForm({ works }: { works: Work[] }) {
                     placeholder="書名"
                     className="field w-full px-3 py-2.5 text-ink"
                   />
-                  <div className="flex gap-2">
-                    <input
-                      value={newAuthor}
-                      onChange={(e) => setNewAuthor(e.target.value)}
-                      placeholder="著者（任意）"
-                      className="field w-full px-3 py-2.5 text-ink"
-                    />
-                    <input
-                      value={newTotal}
-                      onChange={(e) => setNewTotal(e.target.value)}
-                      inputMode="numeric"
-                      placeholder="全巻数"
-                      className="field w-28 px-3 py-2.5 text-ink"
-                    />
+                  <input
+                    value={newAuthor}
+                    onChange={(e) => setNewAuthor(e.target.value)}
+                    placeholder="著者（任意）"
+                    className="field w-full px-3 py-2.5 text-ink"
+                  />
+                  {/* 全巻数ではなく連載状態を問う。連載中は数を持たない */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      data-on={!newComplete}
+                      onClick={() => {
+                        setNewComplete(false);
+                        setNewTotal("");
+                      }}
+                      className="chip flex-1 px-2 py-2.5 text-xs"
+                    >
+                      連載中
+                    </button>
+                    <button
+                      type="button"
+                      data-on={newComplete}
+                      onClick={() => setNewComplete(true)}
+                      className="chip flex-1 px-2 py-2.5 text-xs"
+                    >
+                      完結
+                    </button>
+                    {newComplete && (
+                      <input
+                        value={newTotal}
+                        onChange={(e) => setNewTotal(e.target.value)}
+                        inputMode="numeric"
+                        placeholder="最終巻（任意）"
+                        className="field w-32 px-3 py-2.5 text-ink"
+                      />
+                    )}
                   </div>
                 </div>
               )}
