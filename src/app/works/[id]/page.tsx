@@ -7,6 +7,7 @@ import { getScenesWithUrls } from "@/lib/data/scenes";
 import { WORK_STATUS_LABELS } from "@/lib/types";
 import SessionCard from "./SessionCard";
 import AddScene from "./AddScene";
+import SceneItem from "./SceneItem";
 import CoverUpload from "./CoverUpload";
 
 export default async function WorkDetailPage({
@@ -104,23 +105,13 @@ export default async function WorkDetailPage({
           ) : (
             <div className="mt-3 grid grid-cols-3 gap-2">
               {scenes.map((sc) => (
-                <div key={sc.id} className="flex flex-col gap-1">
-                  <div className="aspect-[3/4] overflow-hidden border border-brass-deep bg-[#f3ecd9]">
-                    {sc.url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={sc.url}
-                        alt={sc.caption ?? ""}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                  {sc.caption && (
-                    <p className="text-[0.7rem] leading-snug text-ink-soft">
-                      {sc.caption}
-                    </p>
-                  )}
-                </div>
+                <SceneItem
+                  key={sc.id}
+                  id={sc.id}
+                  storagePath={sc.storage_path}
+                  url={sc.url}
+                  caption={sc.caption}
+                />
               ))}
             </div>
           )}
