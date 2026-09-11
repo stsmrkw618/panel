@@ -24,6 +24,7 @@ export type CreateLogInput = {
     isbn?: string | null;
     cover_url?: string | null;
     total_volumes?: number | null;
+    is_complete?: boolean;
   };
   read_at?: string;
   volume_from?: number | null;
@@ -60,6 +61,7 @@ export async function createLog(
       isbn: input.newWork.isbn ?? null,
       cover_url: input.newWork.cover_url ?? null,
       total_volumes: input.newWork.total_volumes ?? null,
+      is_complete: input.newWork.is_complete ?? false,
     });
     workId = work.id;
   }

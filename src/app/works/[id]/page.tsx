@@ -32,6 +32,12 @@ export default async function WorkDetailPage({
     getScenesWithUrls(id),
   ]);
 
+  // 到達巻：全セッション中で最も先まで読んだ巻
+  const reached = sessions.reduce(
+    (max, s) => Math.max(max, s.volume_to ?? s.volume_from ?? 0),
+    0,
+  );
+
   // 書影の表示URLを解決：外部URLはそのまま、アップロード分は署名URL（TTL60分）
   let coverUrl: string | null = null;
   if (work.cover_url) {
@@ -91,7 +97,9 @@ export default async function WorkDetailPage({
             </p>
             <SeriesStatus
               workId={work.id}
+              isComplete={work.is_complete}
               totalVolumes={work.total_volumes}
+              reached={reached}
             />
           </div>
         </section>

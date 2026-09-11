@@ -142,7 +142,8 @@ export default function LogForm({ works }: { works: Work[] }) {
     setContinueFrom(null);
     setNewTitle(b.title);
     setNewAuthor(b.author ?? "");
-    setNewComplete(b.total_volumes != null);
+    // 書誌に巻数があっても完結とは限らないため、連載中を既定にして数だけ拾う
+    setNewComplete(false);
     setNewTotal(b.total_volumes != null ? String(b.total_volumes) : "");
     setStep(2);
   }
@@ -214,8 +215,9 @@ export default function LogForm({ works }: { works: Work[] }) {
               publisher: biblio?.publisher ?? null,
               isbn: biblio?.isbn ?? null,
               cover_url: biblio?.cover_url ?? null,
-              // 完結を選んだときのみ最終巻を保持。連載中は null（＝随時変わるので持たない）
-              total_volumes: newComplete && newTotal ? Number(newTotal) : null,
+              // 既刊巻数（連載中は最新巻、完結は最終巻）。空なら null
+              total_volumes: newTotal ? Number(newTotal) : null,
+              is_complete: newComplete,
             },
         read_at: readAt,
         volume_from: from,
@@ -427,15 +429,12 @@ export default function LogForm({ works }: { works: Work[] }) {
                     placeholder="著者（任意）"
                     className="field w-full px-3 py-2.5 text-ink"
                   />
-                  {/* 全巻数ではなく連載状態を問う。連載中は数を持たない */}
+                  {/* 連載状態と既刊巻数。連載中でも既刊数を持ち、追いつき判定に使う */}
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       data-on={!newComplete}
-                      onClick={() => {
-                        setNewComplete(false);
-                        setNewTotal("");
-                      }}
+                      onClick={() => setNewComplete(false)}
                       className="chip flex-1 px-2 py-2.5 text-xs"
                     >
                       連載中
@@ -448,15 +447,13 @@ export default function LogForm({ works }: { works: Work[] }) {
                     >
                       完結
                     </button>
-                    {newComplete && (
-                      <input
-                        value={newTotal}
-                        onChange={(e) => setNewTotal(e.target.value)}
-                        inputMode="numeric"
-                        placeholder="最終巻（任意）"
-                        className="field w-32 px-3 py-2.5 text-ink"
-                      />
-                    )}
+                    <input
+                      value={newTotal}
+                      onChange={(e) => setNewTotal(e.target.value)}
+                      inputMode="numeric"
+                      placeholder={newComplete ? "最終巻" : "既刊（最新巻）"}
+                      className="field w-32 px-3 py-2.5 text-ink"
+                    />
                   </div>
                 </div>
               )}

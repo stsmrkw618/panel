@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getRecentSessions } from "@/lib/data/sessions";
+import { getRecentSessions, getReachedByWork } from "@/lib/data/sessions";
 import { SOURCE_LABELS } from "@/lib/types";
-import { formatDate, sessionVolumeLabel } from "@/lib/format";
+import { formatDate, sessionVolumeLabel, seriesProgress } from "@/lib/format";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -13,6 +13,10 @@ export default async function Home() {
   if (!user) redirect("/login");
 
   const sessions = await getRecentSessions(30);
+
+  // 作品ごとの到達巻（追いつき判定用）
+  const workIds = Array.from(new Set(sessions.map((s) => s.work_id)));
+  const reachedByWork = await getReachedByWork(workIds);
 
   // 書影URLの解決：外部URLはそのまま、アップロード分（storageパス）はまとめて署名URL化
   const coverByWork = new Map<string, string>();
@@ -85,6 +89,13 @@ export default async function Home() {
           <div className="mt-4 flex flex-col gap-3">
             {sessions.map((s, i) => {
               const cover = coverUrlOf(s.work?.cover_url);
+              const prog = s.work
+                ? seriesProgress(
+                    s.work.is_complete,
+                    s.work.total_volumes,
+                    reachedByWork.get(s.work_id) ?? 0,
+                  )
+                : null;
               return (
                 <Link
                   key={s.id}
@@ -110,6 +121,22 @@ export default async function Home() {
                       <p className="truncate text-lg font-bold leading-snug text-ink">
                         {s.work?.title ?? "（不明な書）"}
                       </p>
+                      {prog && (
+                        <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span className="border border-brass-deep px-1.5 py-0.5 font-sans text-[0.65rem] tracking-wide text-ink-soft">
+                            {prog.status}
+                          </span>
+                          {prog.detail && (
+                            <span
+                              className={`font-sans text-[0.65rem] tracking-wide ${
+                                prog.caughtUp ? "text-brass" : "text-muted-dark"
+                              }`}
+                            >
+                              {prog.detail}
+                            </span>
+                          )}
+                        </p>
+                      )}
                       {s.one_line && (
                         <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink-soft">
                           {s.one_line}

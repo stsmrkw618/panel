@@ -15,13 +15,16 @@ export async function setCoverPath(
   revalidatePath("/");
 }
 
-// 連載状態の変更：完結なら最終巻(finalVolume)を保持、連載中なら null に戻す。
-// total_volumes が「完結かどうか」を兼ねる（連載中は都度変わるので数を持たない）。
+// 連載状態の変更：完結フラグと既刊巻数（連載中は最新巻、完結は最終巻）を保存する。
 export async function setSeriesCompletion(
   workId: string,
-  finalVolume: number | null,
+  isComplete: boolean,
+  totalVolumes: number | null,
 ): Promise<void> {
-  await updateWork(workId, { total_volumes: finalVolume });
+  await updateWork(workId, {
+    is_complete: isComplete,
+    total_volumes: totalVolumes,
+  });
   revalidatePath(`/works/${workId}`);
   revalidatePath("/");
 }

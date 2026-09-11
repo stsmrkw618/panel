@@ -43,6 +43,26 @@ export async function getSessionsForWork(
   return (data ?? []) as Session[];
 }
 
+// 作品ごとの到達巻（全セッション中の最大巻）をまとめて取得する。
+// ホーム一覧で「最新まで追いついているか」を出すのに使う。
+export async function getReachedByWork(
+  workIds: string[],
+): Promise<Map<string, number>> {
+  if (workIds.length === 0) return new Map();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("work_id, volume_from, volume_to")
+    .in("work_id", workIds);
+  if (error) throw error;
+  const map = new Map<string, number>();
+  for (const s of data ?? []) {
+    const v = (s.volume_to ?? s.volume_from ?? 0) as number;
+    map.set(s.work_id, Math.max(map.get(s.work_id) ?? 0, v));
+  }
+  return map;
+}
+
 // 「前回の続きから」用：その作品の最新セッションを1件取得
 export async function getLastSessionForWork(
   workId: string,
@@ -132,10 +152,11 @@ async function maybeCompleteWork(
   const supabase = await createClient();
   const { data: work } = await supabase
     .from("works")
-    .select("total_volumes, status")
+    .select("total_volumes, is_complete, status")
     .eq("id", workId)
     .maybeSingle();
-  if (!work?.total_volumes) return;
+  // 完結作品の最終巻に達したときだけ自動読了。連載中は最新に追いついても読了にしない
+  if (!work?.total_volumes || !work.is_complete) return;
   if (volumeTo >= work.total_volumes && work.status !== "completed") {
     await supabase
       .from("works")
