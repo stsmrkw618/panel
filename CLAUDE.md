@@ -61,7 +61,9 @@ create table works (
   publisher text,
   isbn text,
   cover_url text,          -- openBD / Google Books の書影URL
-  total_volumes int,       -- 不明なら null
+  total_volumes int,       -- 既刊巻数（連載中は最新巻、完結は最終巻）。不明なら null
+  is_complete boolean not null default false, -- 連載が完結しているか（0003）
+  rating smallint,         -- 作品の評価 ★1〜5、未評価は null（0004。§12参照）
   status text not null default 'reading',
     -- 'reading' | 'completed' | 'paused' | 'want_to_read'
   created_at timestamptz not null default now(),
@@ -83,7 +85,7 @@ create table sessions (
     -- 'owned'（所有） | 'rental'（レンタル） | 'cafe'（マンガ喫茶）
     -- | 'ebook'（電子） | 'borrowed'（借りた） | 'store'（立ち読み）
   place text,              -- 「自遊空間◯◯店」など任意メモ
-  -- 星の5段階評価は採用しない。
+  -- セッション単位の星評価は採用しない（作品単位の ★ は works.rating に持つ。§12参照）。
   -- 「熱かったが再読はしない」が普通に成立するため、感情の強度と再読意思を
   -- 1つの数値に潰すと入力時に手が止まる。言葉で意思だけを問う。
   revisit_intent text,
@@ -155,8 +157,11 @@ create index on works (user_id, updated_at desc);
 
 ### `/` ホーム
 - 最上部に **今日の再会**：過去のシーン画像を1枚ランダム表示（詳細は §8）
-- その下に直近の読書セッション一覧（作品名 / 巻 / 読んだ場所 / 日付）
-- 右下に固定の記録ボタン（FAB）
+- その下に蔵書一覧。**1作品1枚**（作品ごとに最新セッションを代表）で、表示を切り替えられる（`?view=`）
+  - **書棚**（既定）：書影を正面向きに棚板へ並べる。列数・間隔・段数は冊数と画面幅で自動調整
+  - **目録**：作品名 / ★ / 連載状態 / 一言 / 巻 / 読んだ場所 / 日付の一覧
+- 並び替え（`?sort=`）：最近読んだ順（既定）/ 評価の高い順 / 書名順
+- 右下に固定の記録ボタン（FAB）。羽ペンのアイコン（漢字は使わない）
 
 ### `/log/new` 記録フロー — 最重要画面
 30秒で終わらせる。ステップは3つまで。
@@ -172,7 +177,8 @@ create index on works (user_id, updated_at desc);
    - 前回記録がある作品は「前回の続きから」を初期値に入れる
    - **範囲が最終巻に達したら `works.status` を `completed` に自動更新する**（一気読み完結が主要パターンのため、手動で status を変えさせない）
 3. **再読意思 + 感想3項目**
-   - `revisit_intent` は4択のボタン。星の5段階は使わない
+   - `revisit_intent` は4択のボタン
+   - 作品の ★評価（任意）もここで付けられる。既存作品は現在の評価を初期値にする
    - 感想3項目はすべて任意。空でも保存できること。**保存を阻む必須項目を作らない**
    - **一気読み（5巻以上の範囲）を検出したら、保存後に「刺さったシーンを登録する」導線を出す。** 20巻分の体験は `best_moment` 1つに収まらないため、シーンを複数枚登録できる画面へ直接送る
 
@@ -318,3 +324,14 @@ create index on works (user_id, updated_at desc);
 - 読書中タイマー、ページ数トラッキング
 - 電子書籍ストア連携、購入リンク
 - マルチユーザー運用を前提とした管理画面
+
+---
+
+## 12. 変更履歴（当初仕様からの変更点）
+
+- **2026-09-11 連載状態の分離**: 「total_volumes があれば完結」をやめ、`works.is_complete` を独立列に（`0003_series_completion.sql`）。自動読了は「完結かつ最終巻到達」のときのみ
+- **2026-10-18 ★評価・書棚表示**（本人要望により当初の「星は採用しない」方針を一部変更）
+  - `works.rating`（★1〜5）を追加（`0004_work_rating.sql`）。作品詳細ではタップで即保存、記録フロー STEP3 でも任意で付けられる。`revisit_intent` は併存
+  - ホームを1作品1枚に集約し、書棚／目録の切り替えと並び替え（最近読んだ順・評価順・書名順）を追加
+  - 完結／連載中ラベルを形と色で区別（完結＝墨地に金文字＋✓、連載中＝点線枠＋金の点）
+  - 記録FABを「記」から羽ペンのSVGアイコンに変更
