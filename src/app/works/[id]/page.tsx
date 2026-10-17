@@ -10,6 +10,7 @@ import AddScene from "./AddScene";
 import SceneItem from "./SceneItem";
 import CoverUpload from "./CoverUpload";
 import SeriesStatus from "./SeriesStatus";
+import WorkRating from "./WorkRating";
 
 export default async function WorkDetailPage({
   params,
@@ -90,6 +91,7 @@ export default async function WorkDetailPage({
             {work.author && (
               <p className="mt-1 text-sm text-ink-soft">{work.author}</p>
             )}
+            <WorkRating workId={work.id} rating={work.rating ?? null} />
             <p className="mt-3 font-sans text-[0.7rem] tracking-wide text-muted-dark">
               {[WORK_STATUS_LABELS[work.status], work.publisher]
                 .filter(Boolean)

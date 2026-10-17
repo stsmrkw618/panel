@@ -27,6 +27,7 @@ export type Work = {
   cover_url: string | null;
   total_volumes: number | null; // 既刊巻数（連載中は最新巻、完結は最終巻）
   is_complete: boolean; // 連載が完結しているか
+  rating: number | null; // 評価 ★1〜5（未評価は null）
   status: WorkStatus;
   created_at: string;
   updated_at: string;
@@ -59,6 +60,7 @@ export type NewWork = {
   cover_url?: string | null;
   total_volumes?: number | null;
   is_complete?: boolean;
+  rating?: number | null;
   status?: WorkStatus;
 };
 

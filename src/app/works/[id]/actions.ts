@@ -29,6 +29,16 @@ export async function setSeriesCompletion(
   revalidatePath("/");
 }
 
+// 評価（★1〜5、null で未評価）を保存する
+export async function setWorkRating(
+  workId: string,
+  rating: number | null,
+): Promise<void> {
+  await updateWork(workId, { rating });
+  revalidatePath(`/works/${workId}`);
+  revalidatePath("/");
+}
+
 export type EditSessionInput = {
   read_at: string;
   source: Source;

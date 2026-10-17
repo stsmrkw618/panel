@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWork } from "@/lib/data/works";
+import { createWork, updateWork } from "@/lib/data/works";
 import {
   createSession,
   getLastSessionForWork,
@@ -35,6 +35,8 @@ export type CreateLogInput = {
   one_line?: string | null;
   best_moment?: string | null;
   recommend_to?: string | null;
+  // 作品の評価（★1〜5）。undefined なら触らない、null なら未評価に戻す
+  rating?: number | null;
 };
 
 export type CreateLogResult = {
@@ -62,8 +64,11 @@ export async function createLog(
       cover_url: input.newWork.cover_url ?? null,
       total_volumes: input.newWork.total_volumes ?? null,
       is_complete: input.newWork.is_complete ?? false,
+      ...(input.rating != null ? { rating: input.rating } : {}),
     });
     workId = work.id;
+  } else if (input.rating !== undefined) {
+    await updateWork(workId, { rating: input.rating });
   }
 
   // 2. セッションを保存（status 自動読了は createSession 内で処理）

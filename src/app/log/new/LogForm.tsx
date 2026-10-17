@@ -19,6 +19,7 @@ import {
   lookupBiblioByIsbn,
 } from "./actions";
 import type { Biblio } from "@/lib/bibliography";
+import StarRating from "@/components/StarRating";
 
 // カメラを使うのでクライアント専用で遅延読込
 const BarcodeScanner = dynamic(() => import("./BarcodeScanner"), {
@@ -85,6 +86,7 @@ export default function LogForm({ works }: { works: Work[] }) {
   const [volSingle, setVolSingle] = useState("");
 
   const [revisit, setRevisit] = useState<RevisitIntent | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
   const [oneLine, setOneLine] = useState("");
   const [bestMoment, setBestMoment] = useState("");
   const [recommendTo, setRecommendTo] = useState("");
@@ -107,6 +109,7 @@ export default function LogForm({ works }: { works: Work[] }) {
   async function pickWork(w: Work) {
     setSelectedWork(w);
     setNewTitle("");
+    setRating(w.rating ?? null);
     const c = await getContinueFrom(w.id);
     setContinueFrom(c);
     setStep(2);
@@ -120,6 +123,7 @@ export default function LogForm({ works }: { works: Work[] }) {
     setNewAuthor("");
     setNewComplete(false);
     setNewTotal("");
+    setRating(null);
     setStep(2);
   }
 
@@ -143,6 +147,7 @@ export default function LogForm({ works }: { works: Work[] }) {
     setNewTitle(b.title);
     setNewAuthor(b.author ?? "");
     // 書誌に巻数があっても完結とは限らないため、連載中を既定にして数だけ拾う
+    setRating(null);
     setNewComplete(false);
     setNewTotal(b.total_volumes != null ? String(b.total_volumes) : "");
     setStep(2);
@@ -225,6 +230,8 @@ export default function LogForm({ works }: { works: Work[] }) {
         source: source!,
         place,
         revisit_intent: revisit,
+        rating:
+          rating === (selectedWork?.rating ?? null) ? undefined : rating,
         one_line: oneLine,
         best_moment: bestMoment,
         recommend_to: recommendTo,
@@ -560,7 +567,12 @@ export default function LogForm({ works }: { works: Work[] }) {
           {/* STEP 3 */}
           {step === 3 && (
             <>
-              <p className="eyebrow">また、読みたいか</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="eyebrow">この書の手応え</p>
+                <StarRating value={rating} onChange={setRating} size="lg" />
+              </div>
+
+              <p className="eyebrow mt-5">また、読みたいか</p>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {REVISIT_ORDER.map((r) => (
                   <button

@@ -275,3 +275,168 @@ a.tome:hover {
     transform: none;
   }
 }
+
+/* 評価の星：押すと少し沈む */
+.star-btn {
+  transition: transform 120ms ease;
+}
+.star-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.star-btn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+/* ---------------------------------------------------------
+   書棚（shelf）：暗い木の背板に、真鍮の縁をもつ棚板。
+   1段の高さ（--row）ごとに棚板を繰り返し描くので、段数は冊数に応じて自動で増える。
+   --------------------------------------------------------- */
+.shelf {
+  --row: 13rem;
+  --cover-h: 8.25rem;
+  --board: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr));
+  grid-auto-rows: var(--row);
+  column-gap: clamp(0.6rem, 2.5vw, 1.75rem);
+  min-height: calc(var(--row) * 2);
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem);
+  border: 1px solid var(--color-brass-deep);
+  box-shadow:
+    inset 0 0 0 5px #1b130b,
+    inset 0 0 0 6px rgba(110, 90, 48, 0.55),
+    0 22px 40px -18px rgba(0, 0, 0, 0.8);
+  background-color: #2a1d11;
+  background-image:
+    /* 棚板：天端の真鍮の光 → 板 → 下に落ちる影 */
+    linear-gradient(
+      180deg,
+      transparent calc(100% - var(--board) - 10px),
+      rgba(0, 0, 0, 0.45) calc(100% - var(--board) - 1px),
+      rgba(198, 165, 97, 0.75) calc(100% - var(--board)),
+      #5a3e22 calc(100% - var(--board) + 2px),
+      #3d2a17 calc(100% - 3px),
+      #1a1209 100%
+    ),
+    /* 背板の奥行き：各段の上に溜まる陰 */
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0) 30%
+    ),
+    /* 木目 */
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 220, 160, 0.025) 0 2px,
+      rgba(0, 0, 0, 0.05) 2px 5px,
+      transparent 5px 11px
+    ),
+    linear-gradient(90deg, #2e2013, #3a2816 50%, #2e2013);
+  background-size:
+    100% var(--row),
+    100% var(--row),
+    auto,
+    auto;
+}
+@media (min-width: 640px) {
+  .shelf {
+    --row: 15rem;
+    --cover-h: 10rem;
+    grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
+  }
+}
+
+.shelf-book {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: 0;
+  padding-bottom: var(--board);
+}
+
+.shelf-title {
+  width: 100%;
+  text-align: center;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: rgba(236, 225, 198, 0.82);
+  transition: color 200ms ease;
+}
+
+.shelf-cover {
+  position: relative;
+  display: block;
+  height: var(--cover-h);
+  aspect-ratio: 2 / 3;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow:
+    -3px 0 0 rgba(0, 0, 0, 0.18) inset,
+    6px 0 10px -4px rgba(0, 0, 0, 0.7),
+    0 6px 8px -4px rgba(0, 0, 0, 0.8);
+  transform-origin: bottom center;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 220ms ease;
+}
+.shelf-book:hover .shelf-cover {
+  transform: translateY(-6px);
+  box-shadow:
+    -3px 0 0 rgba(0, 0, 0, 0.18) inset,
+    8px 4px 14px -4px rgba(0, 0, 0, 0.75),
+    0 14px 16px -6px rgba(0, 0, 0, 0.85);
+}
+.shelf-book:hover .shelf-title {
+  color: var(--color-brass);
+}
+
+.shelf-cover-blank {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.4rem;
+  background: linear-gradient(180deg, var(--color-parchment), var(--color-parchment-2));
+  color: var(--color-ink);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  writing-mode: vertical-rl;
+  outline: 1px solid rgba(110, 90, 48, 0.5);
+  outline-offset: -5px;
+}
+
+/* 完結の印：表紙右上に墨と金の小札 */
+.shelf-mark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.1rem 0.3rem;
+  background: var(--color-ink);
+  color: var(--color-brass);
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+/* 評価：表紙の下端に金の星 */
+.shelf-rating {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 0.6rem 0.25rem 0.15rem;
+  background: linear-gradient(180deg, transparent, rgba(22, 17, 11, 0.85));
+  color: var(--color-brass);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf-book:hover .shelf-cover {
+    transform: none;
+  }
+}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { seriesProgress } from "@/lib/format";
+import SeriesBadge from "@/components/SeriesBadge";
 import { setSeriesCompletion } from "./actions";
 
 // 連載状態・既刊巻数の表示と変更、および到達巻（reached）から見た追いつき具合。
@@ -25,7 +26,7 @@ export default function SeriesStatus({
   );
   const [pending, setPending] = useState(false);
 
-  const { status, detail, caughtUp } = seriesProgress(
+  const { detail, caughtUp } = seriesProgress(
     isComplete,
     totalVolumes,
     reached,
@@ -45,9 +46,7 @@ export default function SeriesStatus({
   if (!editing) {
     return (
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="border border-brass-deep px-2 py-0.5 font-sans text-[0.7rem] tracking-wide text-ink-soft">
-          {status}
-        </span>
+        <SeriesBadge isComplete={isComplete} size="md" />
         {detail && (
           <span
             className={`font-sans text-[0.7rem] tracking-wide ${
